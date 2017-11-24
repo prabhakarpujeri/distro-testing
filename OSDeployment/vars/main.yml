@@ -1,0 +1,21 @@
+---
+# vars file for OSDeployment
+central: 100.98.4.4
+bond_modes:
+  - balance-rr
+  - active-backup
+  - balance-xor
+  - balance-tlb
+  - balance-alb
+  - broadcast
+
+bond_master: bond0
+team_master: team0
+
+nmcli_bond_slave:
+  - {cname: 'em1-slave', ifname: 'em1', master: 'bond0'}
+  - {cname: 'em2-slave', ifname: 'em2', master: 'bond0'}
+
+team_slave:
+  - {cname: 'em1-slave', ifname: 'em1', master: 'team0'}
+  - {cname: 'em2-slave', ifname: 'em2', master: 'team0'}

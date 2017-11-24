@@ -1,0 +1,6 @@
+---
+
+- name: Install required packages
+  dnf:
+      name: docker
+      state: latest

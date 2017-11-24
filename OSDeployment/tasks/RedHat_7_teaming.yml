@@ -1,0 +1,55 @@
+---
+
+- name: install needed network manager libs
+  yum:
+      name: '{{ item }}'
+      state: installed
+  with_items:
+    - NetworkManager-glib
+    - nm-connection-editor.x86_64
+    - libsemanage-python
+    - policycoreutils-python
+
+- name: create team master
+  nmcli:
+      type: team
+      conn_name: '{{ team_master }}'
+      state: present
+
+- name: add slaves
+  nmcli: type=team-slave conn_name={{item.cname}}  ifname={{item.ifname}} master={{item.master}} state=present autoconnect=yes updelay=no
+  with_items:
+    - "{{team_slave}}"
+
+- name: bring all interfaces up
+  shell: nmcli con up {{item.cname}}
+  with_items:
+      - "{{team_slave}}"
+
+- name: check team interface
+  shell: "cat /proc/net/teaming/{{team_master}}"
+
+- name: ping test
+  shell: "ping {{central}} -I {{team_master}} -c 10"
+
+- name: get ISO image
+  get_url:
+      url: http://100.98.4.4/redhat/RHEL-7.4/RHEL-7.4-GA/Server/x86_64/iso/RHEL-7.4-20170711.0-Server-x86_64-dvd1.iso
+      dest: /root/rhel.iso
+      force: yes
+
+- name: bring team slave
+  shell: "nmcli con down {{team_master}} ; sleep 1"
+
+- name: delete slaves from master
+  shell: nmcli con del {{item.cname}}
+  with_items:
+      - "{{team_slave}}"
+
+- name: delete team master
+  shell: nmcli con del {{team_master}}
+
+
+
+
+

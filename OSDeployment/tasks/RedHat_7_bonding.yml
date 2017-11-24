@@ -1,0 +1,56 @@
+---
+
+- name: install needed network manager libs
+  yum:
+      name: '{{ item }}'
+      state: installed
+  with_items:
+    - NetworkManager-glib
+    - nm-connection-editor.x86_64
+    - libsemanage-python
+    - policycoreutils-python
+
+- name: create bond master
+  nmcli:
+      type: bond
+      conn_name: '{{ bond_master }}'
+      mode: "{{bond_mode}}" 
+      state: present
+
+- name: add slaves
+  nmcli: type=bond-slave conn_name={{item.cname}}  ifname={{item.ifname}} master={{item.master}} state=present autoconnect=yes updelay=no
+  with_items:
+    - "{{nmcli_bond_slave}}"
+
+- name: bring all interfaces up
+  shell: nmcli con up {{item.cname}}
+  with_items:
+      - "{{nmcli_bond_slave}}"
+
+- name: check bond interface
+  shell: "cat /proc/net/bonding/{{bond_master}}"
+
+- name: ping test
+  shell: "ping {{central}} -I {{bond_master}} -c 10"
+
+- name: get ISO image
+  get_url:
+      url: http://100.98.4.4/redhat/RHEL-7.4/RHEL-7.4-GA/Server/x86_64/iso/RHEL-7.4-20170711.0-Server-x86_64-dvd1.iso
+      dest: /root/rhel.iso
+      force: yes
+
+- name: bring bond slave
+  shell: "nmcli con down {{bond_master}} ; sleep 1"
+
+- name: delete slaves from master
+  shell: nmcli con del {{item.cname}}
+  with_items:
+      - "{{nmcli_bond_slave}}"
+
+- name: delete bond master
+  shell: nmcli con del {{bond_master}}
+
+
+
+
+

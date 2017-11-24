@@ -1,0 +1,5 @@
+- hosts: os
+  vars:
+    install_os: RHEL7
+  roles:
+     - { role: OSDeployment }

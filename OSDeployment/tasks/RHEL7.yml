@@ -1,0 +1,18 @@
+---
+- name: configure yum repo
+  get_url:
+    url: http://100.98.4.4/test/automation/rhel74.repo
+    dest: /etc/yum.repos.d/rehl74.repo 
+    mode: 0440
+
+- name: include bonding tests
+  include: "{{ansible_distribution}}_{{ansible_distribution_major_version}}_bonding.yml bond_mode={{item}}"
+  with_items: "{{bond_modes}}"
+
+
+- name: include bonding tests
+  include: "{{ansible_distribution}}_{{ansible_distribution_major_version}}_teaming.yml"
+
+
+
+
